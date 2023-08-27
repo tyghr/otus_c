@@ -18,7 +18,7 @@ static long hash(hashmap_t hm, char *key) {
         m = (m * k) % hashmap_size;
     }
 
-    while ((hm[h] != NULL) && strcmp(hm[h]->key,key)!=0)
+    while (hm[h] != NULL && strcmp(hm[h]->key,key) != 0)
         h = (h+1) % hashmap_size;
 
     return h;
@@ -46,10 +46,7 @@ hashmap_elem_p_t hashmap_set(hashmap_t hm, char *key, int *value) {
         strcpy(hm[hv]->key, key);
     }
 
-    hm[hv] = (hashmap_elem_p_t) malloc(sizeof(hashmap_elem_t));
-    hm[hv]->key = malloc(strlen(key) + 1);
-    strcpy(hm[hv]->key, key);
-    hm[hv]->set = true;
+    // NOTE: если бы нужно было переопределение еще одной строки в структуре, тут должен быть еще free()
     hm[hv]->val = *value;
 
     return hm[hv];
@@ -79,7 +76,7 @@ hashmap_elem_p_t hashmap_add(hashmap_t hm, char *key, int *value) {
 hashmap_elem_p_t *hashmap_iterator(hashmap_t *hp, hashmap_elem_p_t **start) {
     hashmap_elem_p_t *cursor = *start;
 
-    while ((*cursor == NULL || (*cursor)->set == false) && cursor != &(*hp)[hashmap_size])
+    while (*cursor == NULL && cursor != &(*hp)[hashmap_size])
         cursor++;
 
     *start = cursor;

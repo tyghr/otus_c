@@ -4,7 +4,6 @@
 typedef struct hashmap_val hashmap_elem_t, *hashmap_elem_p_t, **hashmap_t;
 struct hashmap_val{
     char *key;
-    bool set;
     int val;
 };
 hashmap_t hashmap_new(void);
