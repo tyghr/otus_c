@@ -1,3 +1,5 @@
 test/
 .vscode/
 *.out
+*.o
+app

@@ -39,7 +39,7 @@ int validate_input_enc(char * encode_from) {
 int write_utf8_char(unsigned int c, FILE * fout) {
     if (c <= 0x7f) {
         // 0xxxxxxx
-        unsigned int c1 = c&((1<<7)-1);
+        unsigned int c1 = c&((1<<7)-1); // можно заменить на c&0b0111111, а вообще лишнее, т.к. проверка выше
         fwrite(&c1, sizeof(char), 1, fout);
     } else if (c <= 0x7ff) {
         // 110xxxxx 10xxxxxx
