@@ -29,7 +29,10 @@ int main(int argc, char *argv[]) {
     int cur = 0;
     int inc = 1;
     while ((c = fgetc(fp)) != EOF) {
-        if (isspace(c)) {
+        if (isspace(c) || \
+            isdigit(c) || \
+            ispunct(c) || \
+            iscntrl(c) ) {
             if (cur!=0) {
                 buf[cur++] = '\0';
                 hashmap_add(h, buf, &inc);
