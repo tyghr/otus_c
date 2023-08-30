@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
+#include <json-c/json.h>
 
 struct MemoryStruct {
     char * memory;
@@ -27,63 +28,103 @@ static size_t WriteMemoryCallback(void * contents, size_t size, size_t nmemb, vo
     return realsize;
 }
 
-int main(void) {
+struct weather {
+    struct json_object *j_temp_C;
+    struct json_object *j_FeelsLikeC;
+    struct json_object *j_humidity;
+    struct json_object *j_pressure;
+    struct json_object *j_uvIndex;
+    struct json_object *j_visibility;
+    struct json_object *j_weatherDesc;
+    struct json_object *j_winddir16Point;
+    struct json_object *j_windspeedKmph;
+};
+
+int main(int argc, char **argv) {
+    if (argc != 2) {
+        perror("need cityname");
+        return EXIT_FAILURE;
+    }
+    char *city = argv[1];
+    char url[100];
+    sprintf(url, "http://wttr.in/%s?format=j1", city);
+
     CURL * curl_handle;
     CURLcode res;
 
     struct MemoryStruct chunk;
 
-    chunk.memory = malloc(1);  /* will be grown as needed by the realloc above */
-    chunk.size = 0;    /* no data at this point */
+    chunk.memory = malloc(1);
+    chunk.size = 0;
 
     curl_global_init(CURL_GLOBAL_ALL);
 
-    /* init the curl session */
     curl_handle = curl_easy_init();
 
-    /* specify URL to get */
-    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://wttr.in/Moscow?format=j1");
-
-    /* send all data to this function  */
+    curl_easy_setopt(curl_handle, CURLOPT_URL, url);
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
-
-    /* we pass our 'chunk' struct to the callback function */
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void*)&chunk);
-
-    /* some servers do not like requests that are made without a user-agent
-       field, so we provide one */
     curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
-    /* get it! */
     res = curl_easy_perform(curl_handle);
-
-    /* check for errors */
     if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-            curl_easy_strerror(res));
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
     }
-    else {
-        /*
-         * Now, our chunk.memory points to a memory block that is chunk.size
-         * bytes big and contains the remote file.
-         *
-         * Do something nice with it!
-         */
-
-        printf("%lu bytes retrieved\n", (unsigned long)chunk.size);
-        printf("%s", chunk.memory);
-    }
-
-    /* cleanup curl stuff */
     curl_easy_cleanup(curl_handle);
 
+    // json decode
+    struct weather *current_weather = (struct weather *) malloc(sizeof(struct weather));
+    struct json_object *j_current_condition;
+
+    json_object_object_get_ex(
+        json_tokener_parse(chunk.memory),
+        "current_condition",
+        &j_current_condition
+    );
+    if (json_object_array_length(j_current_condition) < 1) {
+        return EXIT_FAILURE;
+    }
+
+    json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "temp_C", &current_weather->j_temp_C);
+    json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "FeelsLikeC", &current_weather->j_FeelsLikeC);
+    json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "humidity", &current_weather->j_humidity);
+    json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "pressure", &current_weather->j_pressure);
+    json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "uvIndex", &current_weather->j_uvIndex);
+    json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "visibility", &current_weather->j_visibility);
+    json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "winddir16Point", &current_weather->j_winddir16Point);
+    json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "windspeedKmph", &current_weather->j_windspeedKmph);
+    struct json_object *j_w_desc;
+    json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "weatherDesc", &j_w_desc);
+    if (json_object_array_length(j_w_desc) > 0) {
+        json_object_object_get_ex(json_object_array_get_idx(j_w_desc, 0), "value", &current_weather->j_weatherDesc);
+    }
+
+    printf("weather in %s:\n", city);
+    printf("\tdesc: %s\n", json_object_get_string(current_weather->j_weatherDesc));
+    printf("\ttemp: %sC\tfeels like: %sC\n", json_object_get_string(current_weather->j_temp_C), json_object_get_string(current_weather->j_FeelsLikeC));
+    printf("\twind: %skmh %s\n", json_object_get_string(current_weather->j_windspeedKmph), json_object_get_string(current_weather->j_winddir16Point));
+    printf("\tvisibility: %s\n", json_object_get_string(current_weather->j_visibility));
+    printf("\tuvIndex: %s\n", json_object_get_string(current_weather->j_uvIndex));
+    printf("\tpressure: %s\n", json_object_get_string(current_weather->j_pressure));
+    printf("\thumidity: %s\n", json_object_get_string(current_weather->j_humidity));
+
+    // Delete the json objects
+    json_object_put(current_weather->j_weatherDesc);
+	json_object_put(j_w_desc);
+    json_object_put(current_weather->j_windspeedKmph);
+    json_object_put(current_weather->j_winddir16Point);
+    json_object_put(current_weather->j_visibility);
+    json_object_put(current_weather->j_uvIndex);
+    json_object_put(current_weather->j_pressure);
+    json_object_put(current_weather->j_humidity);
+    json_object_put(current_weather->j_FeelsLikeC);
+    json_object_put(current_weather->j_temp_C);
+	json_object_put(j_current_condition);
+
+    free(current_weather);
     free(chunk.memory);
 
-    /* we are done with libcurl, so clean it up */
     curl_global_cleanup();
-
-    // !! TODO
-    // https://gist.github.com/alan-mushi/19546a0e2c6bd4e059fd
 
     return 0;
 }
