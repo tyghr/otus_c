@@ -66,9 +66,11 @@ int main(int argc, char **argv) {
     curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, (void*)&chunk);
     curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");
 
+    // TODO curl_easy_perform не обрабатывается, попробуйте запустить программу с отключенной сетью, получите segfault - не хорошо
     res = curl_easy_perform(curl_handle);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+        return EXIT_FAILURE;
     }
     curl_easy_cleanup(curl_handle);
 
@@ -85,6 +87,8 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    // TODO Имена json полей можно было бы вынести отдельными дефайнами
+    // TODO json_object_object_get_ex возвращает bool, результат удалось ли распарсить поле, у вас это нигде не проверяется
     json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "temp_C", &current_weather->j_temp_C);
     json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "FeelsLikeC", &current_weather->j_FeelsLikeC);
     json_object_object_get_ex(json_object_array_get_idx(j_current_condition, 0), "humidity", &current_weather->j_humidity);
