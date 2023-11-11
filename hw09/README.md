@@ -20,3 +20,8 @@
 Вспомогательные материалы:
 - Пример библиотеки, реализующей ожидаемый интерфейс журналирования: [c-logger](https://github.com/yksz/c-logger/blob/59d77982d7b900433d8b2bb1b4e17f661aa53e75/src/logger.h#L17-L22)
 - [backtrace(3)](https://man7.org/linux/man-pages/man3/backtrace.3.html)
+
+TODO:
+1. Размер файла лучше не определять через fseek ftell
+https://stackoverflow.com/questions/5957845/using-fseek-and-ftell-to-determine-the-size-of-a-file-has-a-vulnerability
+2. Возможно стоило платформозависимые части вынести в отдельный файл.

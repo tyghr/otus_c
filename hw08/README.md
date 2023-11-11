@@ -43,6 +43,12 @@
 - [GStreamer source](https://gitlab.freedesktop.org/gstreamer/gstreamer)
 - [gst-element-maker](https://gitlab.freedesktop.org/gstreamer/gst-plugins-bad/-/blob/master/tools/gst-element-maker)
 - [Plugin Writer's Guide](https://gstreamer.freedesktop.org/documentation/plugin-development/?gi-language=c)
+- https://gstreamer.freedesktop.org/documentation/plugin-development/basics/boiler.html?gi-language=c
+- https://developer.ridgerun.com/wiki/index.php/Creating_a_New_GStreamer_Element_or_Application_Using_Templates
+- https://gitlab.freedesktop.org/gstreamer/gstreamer/-/blob/main/subprojects/gstreamer/plugins/elements/gstfilesrc.c
+- https://otus.ru/journal/oop-na-c-pishem-videopleer/
+- https://gitlab.com/otusteam/otus-video-player/-/blob/master/src/vimeosource.c
+
 ---
 Вариант 1.  
 Решение:
