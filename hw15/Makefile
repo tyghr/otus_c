@@ -1,0 +1,8 @@
+CFLAGS = -g -Wall -Wextra -Wpedantic -std=c11
+
+build:
+	gcc ${CFLAGS} -I/usr/include/postgresql -c -o main.o main.c
+	gcc ${CFLAGS} -o app main.o -lpq
+
+clean:
+	rm app main.o a.out 2>/dev/null || true
