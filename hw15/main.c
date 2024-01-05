@@ -25,46 +25,22 @@ int main(int argc, char **argv) {
     }
 
     char query[500];
-    sprintf(query, "SELECT %s FROM %s", colname, tablename);
+    sprintf(query, "SELECT MIN(%1$s), MAX(%1$s), AVG(%1$s), SUM(%1$s), VAR_POP(%1$s) FROM %2$s", colname, tablename);
     PGresult* res = PQexec(conn, query);
     if (PQresultStatus(res) != PGRES_TUPLES_OK) {
         finish_with_error(conn);
     }
 
-    float stat_avg = 0;
-    float stat_max = 0;
-    float stat_min = 0;
-    float stat_total = 0;
-    float stat_total_2 = 0;
-    float stat_total_disp = 0;
-
     int nrows = PQntuples(res);
-    for (int i = 0; i < nrows; i++) {
-        float val = atof(PQgetvalue(res, i, 0));
-
-        stat_total += val;
-        stat_total += val * val;
-
-        if (i == 0) {
-            float stat_avg = val;
-            float stat_max = val;
-            float stat_min = val;
-            continue;
-        }
-
-        stat_avg = (stat_avg + val) / 2 ;
-        if ( val > stat_max)
-            stat_max = val;
-        if ( val < stat_min)
-            stat_max = val;
+    if (nrows != 1) {
+        finish_with_error(conn);
     }
 
-    float stat_avg = 0;
-    float stat_max = 0;
-    float stat_min = 0;
-    float stat_total = 0;
-
-    float stat_disp = stat_total_2 / nrows - stat_avg * stat_avg ;
+    float stat_min   = atof(PQgetvalue(res, 0, 0));
+    float stat_max   = atof(PQgetvalue(res, 0, 1));
+    float stat_avg   = atof(PQgetvalue(res, 0, 2));
+    float stat_total = atof(PQgetvalue(res, 0, 3));
+    float stat_disp  = atof(PQgetvalue(res, 0, 4));
 
     printf("stat_avg: %f\n", stat_avg);
     printf("stat_max: %f\n", stat_max);
